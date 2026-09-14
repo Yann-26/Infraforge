@@ -92,7 +92,12 @@ Ready in minutes, fully auditable
 ## 🏗️ Architecture
 
 <p align="center">
-  <img src="architecture/diagrams/high-level.png" alt="InfraForge Architecture" width="900"/>
+  <img width="8168" height="2584" alt="Image" src="https://github.com/user-attachments/assets/18d3bcd8-a084-4f22-9134-e4ebb22fb7cb" />
+</p>
+
+## 🏗️ Data Flow
+<p>
+    <img width="7642" height="992" alt="Image" src="https://github.com/user-attachments/assets/881c9b65-086e-480a-b529-2ff4d46b91bd" />
 </p>
 
 <p align="center">
@@ -190,8 +195,8 @@ Ready in minutes, fully auditable
 
 ## 🔄 Request Workflow
 
-<p align="center">
-  <img src="architecture/diagrams/sequence.png" alt="Request Lifecycle" width="800"/>
+<p align="center"> 
+  <img width="3538" height="4208" alt="Image" src="https://github.com/user-attachments/assets/8162003b-2e0c-424e-bc97-5e8ae9394196" />
 </p>
 
 ```text
