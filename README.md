@@ -397,20 +397,21 @@ infraforge/
 
 <div align="center">
 
-### Dashboard
-<img src="docs/screenshots/dashboard.png" alt="Dashboard" width="800"/>
+### dashboard
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/82bacadc-2561-40de-8c4c-f7d40e034f50" />
 
-### Request Form
-<img src="docs/screenshots/request-form.png" alt="Request Form" width="800"/>
+### request form
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/5f5c640f-41fa-4155-87cd-aa2224d7b5c8" />
 
-### Real-time Progress
-<img src="docs/screenshots/progress.png" alt="Request Progress" width="800"/>
+### Progress view
+<img width="1908" height="1076" alt="Image" src="https://github.com/user-attachments/assets/f9bfae9d-f59d-47bc-bbf7-29d22850a974" />
 
-### Generated Code
-<img src="docs/screenshots/generated-code.png" alt="Generated Terraform Code" width="800"/>
+### netbox view
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/826b95ef-7976-4afa-b3e1-c9a2f384ae26" />
 
-### GitLab Pipeline
-<img src="docs/screenshots/pipeline.png" alt="GitLab CI Pipeline" width="800"/>
+### monitoring view
+https://github.com/user-attachments/assets/99358b98-2b31-4ef3-aaee-3f475293f425
+
 
 </div>
 
