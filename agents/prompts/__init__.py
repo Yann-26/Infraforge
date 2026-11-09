@@ -7,7 +7,7 @@ Each prompt lives in ``agents/prompts/<name>.<version>.md`` with two sections::
     <<<USER>>>
     ...user template with $placeholders...
 
-Templates use ``string.Template`` (``$name``) so JSON braces need no escaping.
+Both sections are ``string.Template`` (``$name``) so JSON braces need no escaping.
 Changing a prompt means adding a new version file and bumping the version in the
 agent, so eval results can always be tied to an exact prompt.
 """
@@ -22,11 +22,12 @@ PROMPTS_DIR = Path(__file__).parent
 @dataclass(frozen=True)
 class Prompt:
     id: str  # e.g. "investigator.v1"
-    system: str
+    system_template: Template
     user_template: Template
 
-    def render(self, **values: str) -> str:
-        return self.user_template.substitute(**values)
+    def render(self, **values: str) -> tuple[str, str]:
+        """Return ``(system, user)``; raises ``KeyError`` if a placeholder is missing."""
+        return self.system_template.substitute(**values), self.user_template.substitute(**values)
 
 
 def load_prompt(name: str, version: str) -> Prompt:
@@ -37,5 +38,7 @@ def load_prompt(name: str, version: str) -> Prompt:
     _, rest = text.split("<<<SYSTEM>>>", 1)
     system, user = rest.split("<<<USER>>>", 1)
     return Prompt(
-        id=f"{name}.{version}", system=system.strip(), user_template=Template(user.strip())
+        id=f"{name}.{version}",
+        system_template=Template(system.strip()),
+        user_template=Template(user.strip()),
     )
