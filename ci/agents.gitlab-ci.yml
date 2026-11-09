@@ -1,0 +1,149 @@
+# ============================================================================
+# InfraForge — AI agents & code quality (GitLab CI include)
+#
+# Add to the main .gitlab-ci.yml:
+#
+#   include:
+#     - local: ci/agents.gitlab-ci.yml
+#
+# Jobs use only built-in or existing stages (validate, test, .post), so the main
+# `stages:` list does not change.
+#
+# CI/CD variables (Settings > CI/CD > Variables) — see docs/AI_AGENTS.md:
+#   ANTHROPIC_API_KEY      masked. Claude API key (use a dedicated key with a spend limit).
+#   AGENT_GITLAB_TOKEN     masked. Project access token, role Reporter, scope `api`.
+#                          The agent code only reads and creates MR notes (allow-list).
+#   AGENT_PUSHGATEWAY_URL  optional, e.g. http://pushgateway.infra.local:9091
+#   AGENT_MODEL, AGENT_SEVERITY_THRESHOLD, AGENT_LLM_TIMEOUT_SECONDS, ... optional
+#   OPA_SHA256             optional, sha256 of the OPA binary; verified when set
+#
+# Safety: every AI job has `allow_failure: true` and the agent process always exits 0,
+# so an agent can never block or change a pipeline result. Agents only comment.
+# ============================================================================
+
+variables:
+  OPA_VERSION: "1.4.2"
+
+.ai_agent_base:
+  image: python:3.11-slim
+  tags:
+    - docker
+  interruptible: true
+  allow_failure: true
+  timeout: 10m
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  cache:
+    key: ai-agents-pip
+    paths:
+      - .cache/pip
+  before_script:
+    - pip install --quiet -r agents/requirements.txt
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - agent-report.json
+      - agent-metrics.prom
+
+# ---------------------------------------------------------------------------
+# Code quality (no LLM). Report-only for now: violations show in the MR
+# Code Quality widget but do not fail the pipeline.
+# ---------------------------------------------------------------------------
+code_quality:
+  stage: test
+  image: python:3.11
+  tags:
+    - docker
+  needs: []
+  interruptible: true
+  allow_failure: true # report-only; remove once the existing code meets the thresholds
+  timeout: 15m
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+    npm_config_cache: "$CI_PROJECT_DIR/.cache/npm"
+  cache:
+    key: code-quality
+    paths:
+      - .cache/pip
+      - .cache/npm
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends nodejs npm >/dev/null
+    - pip install --quiet radon==6.0.1 import-linter==2.16 detect-secrets==1.5.0 PyYAML==6.0.3
+  script:
+    - python quality/run_quality.py
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - quality-report.json
+    reports:
+      codequality: gl-code-quality-report.json
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+
+# ---------------------------------------------------------------------------
+# OPA policy unit tests (policies/opa/*_test.rego)
+# ---------------------------------------------------------------------------
+opa_policy_tests:
+  stage: validate
+  image:
+    name: openpolicyagent/opa:${OPA_VERSION}-debug # -debug variant includes a shell
+    entrypoint: [""]
+  tags:
+    - docker
+  needs: []
+  allow_failure: true # existing policies use pre-1.0 syntax; see docs/AI_AGENTS.md
+  script:
+    - opa check --v0-compatible policies/opa
+    - opa test --v0-compatible -v policies/opa
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - policies/opa/**/*
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+
+# ---------------------------------------------------------------------------
+# AI MR reviewer — comments only high/critical findings (+ OPA results)
+# ---------------------------------------------------------------------------
+ai_mr_review:
+  extends: .ai_agent_base
+  stage: test
+  needs: []
+  before_script:
+    - pip install --quiet -r agents/requirements.txt
+    - >
+      python -c "import urllib.request as u;
+      u.urlretrieve('https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static',
+      '/usr/local/bin/opa')" || echo "OPA download failed; policy checks will be skipped"
+    - if [ -n "$OPA_SHA256" ]; then echo "$OPA_SHA256  /usr/local/bin/opa" | sha256sum -c - || rm -f /usr/local/bin/opa; fi
+    - chmod +x /usr/local/bin/opa 2>/dev/null || true
+  script:
+    - python -m agents --output agent-report.json review
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $AGENT_GITLAB_TOKEN
+
+# ---------------------------------------------------------------------------
+# AI CI failure investigator — runs only when an earlier job failed
+# ---------------------------------------------------------------------------
+ai_investigate_failure:
+  extends: .ai_agent_base
+  stage: .post
+  script:
+    - python -m agents --output agent-report.json investigate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $AGENT_GITLAB_TOKEN
+      when: on_failure
+
+# ---------------------------------------------------------------------------
+# Feedback collector — schedule it (CI/CD > Schedules) with AGENT_FEEDBACK=true
+# ---------------------------------------------------------------------------
+ai_agents_feedback:
+  extends: .ai_agent_base
+  stage: .post
+  script:
+    - python -m agents --output agent-report.json feedback --days 30
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $AGENT_FEEDBACK == "true"
