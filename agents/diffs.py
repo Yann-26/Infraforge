@@ -52,46 +52,55 @@ class FileDiff:
         return any(p.search(self.path) for p in SKIP_PATTERNS)
 
 
+def _header_line(current: FileDiff, raw: str) -> bool:
+    """Handle file-level header lines. Returns True if ``raw`` was one."""
+    if raw.startswith("new file mode"):
+        current.new_file = True
+    elif raw.startswith("deleted file mode"):
+        current.deleted = True
+    elif raw.startswith("--- "):
+        old = raw[4:].strip()
+        current.old_path = None if old == "/dev/null" else old.removeprefix("a/")
+    elif raw.startswith("+++ "):
+        new = raw[4:].strip()
+        if new != "/dev/null":
+            current.path = new.removeprefix("b/")
+    else:
+        return False
+    return True
+
+
+def _body_line(current: FileDiff, raw: str, new_line: int) -> int:
+    """Handle a hunk line; returns the next new-file line number."""
+    if match := _HUNK.match(raw):
+        current.rendered.append(raw)
+        return int(match.group(1))
+    if raw.startswith("+"):
+        current.added[new_line] = current.new_lines[new_line] = raw[1:]
+        current.rendered.append(f"+{new_line:>5} | {raw[1:]}")
+        return new_line + 1
+    if raw.startswith("-"):
+        current.rendered.append(f"-{'':>5} | {raw[1:]}")
+        return new_line
+    if raw.startswith(" ") or raw == "":
+        current.new_lines[new_line] = raw[1:]
+        current.rendered.append(f" {new_line:>5} | {raw[1:]}")
+        return new_line + 1
+    return new_line  # "\ No newline at end of file" and other markers
+
+
 def parse_unified_diff(text: str) -> list[FileDiff]:
     """Parse ``git diff`` / GitLab diff output into ``FileDiff`` objects."""
     files: list[FileDiff] = []
     current: FileDiff | None = None
     new_line = 0
-
     for raw in text.splitlines():
         if raw.startswith("diff --git "):
             parts = raw.split(" b/", 1)
             current = FileDiff(path=parts[1] if len(parts) == 2 else raw[11:])
             files.append(current)
-            continue
-        if current is None:
-            continue
-        if raw.startswith("new file mode"):
-            current.new_file = True
-        elif raw.startswith("deleted file mode"):
-            current.deleted = True
-        elif raw.startswith("--- "):
-            old = raw[4:].strip()
-            current.old_path = None if old == "/dev/null" else old.removeprefix("a/")
-        elif raw.startswith("+++ "):
-            new = raw[4:].strip()
-            if new != "/dev/null":
-                current.path = new.removeprefix("b/")
-        elif match := _HUNK.match(raw):
-            new_line = int(match.group(1))
-            current.rendered.append(raw)
-        elif raw.startswith("+"):
-            current.added[new_line] = raw[1:]
-            current.new_lines[new_line] = raw[1:]
-            current.rendered.append(f"+{new_line:>5} | {raw[1:]}")
-            new_line += 1
-        elif raw.startswith("-"):
-            current.rendered.append(f"-{'':>5} | {raw[1:]}")
-        elif raw.startswith(" ") or raw == "":
-            current.new_lines[new_line] = raw[1:]
-            current.rendered.append(f" {new_line:>5} | {raw[1:]}")
-            new_line += 1
-        # "\ No newline at end of file" and other markers are ignored
+        elif current is not None and not _header_line(current, raw):
+            new_line = _body_line(current, raw, new_line)
     return files
 
 

@@ -12,6 +12,7 @@ import ipaddress
 import os
 import re
 from dataclasses import dataclass, field
+from functools import partial
 
 REDACTED = "[REDACTED]"
 
@@ -51,7 +52,7 @@ SECRET_PATTERNS: list[SecretPattern] = [
         r"""(?ix)
         \b[\w\-.]*(?:password|passwd|pwd|secret|token|api[_\-]?key|access[_\-]?key|private[_\-]?key
             |client[_\-]?secret|auth[_\-]?token|authorization)[\w\-.]*["']?
-        \s*[:=]\s*
+        \s*[:=](?!=)\s*
         ["']?([^\s"'`,;(){}\[\]]{6,})(?=["'\s,;})\]]|$)
         """,
         group=1,
@@ -61,12 +62,21 @@ SECRET_PATTERNS: list[SecretPattern] = [
 # Values that look like assignments but are clearly not secrets.
 _PLACEHOLDER = re.compile(
     r"(?i)^(?:\$\{?[\w.]+\}?|\{\{.*\}\}|<[^>]+>|var\.\w+|local\.\w+|data\.[\w.]+|none|null|true"
-    r"|false|changeme|example|placeholder|\[REDACTED(?::[a-z_]+)?\]|x{6,}|\*{6,})$"
+    r"|false|changeme|example|placeholder|bearer|basic|\[REDACTED(?::[a-z_]+)?\]|x{6,}|\*{6,})$"
 )
 
 # Code references rather than literal values: settings.token, gitlab_token, SecretStr.
 _CODE_REFERENCE = re.compile(
-    r"^(?:[A-Za-z_]\w*(?:\.\w+)+|[a-z][a-z0-9]*(?:_[a-z0-9]+)+|[A-Z][a-z]+(?:[A-Z][a-z]+)+)$"
+    r"^(?:[A-Za-z_]\w*(?:\.\w+)+"  # settings.token
+    r"|[a-z][a-z0-9]*(?:_[a-z0-9]+)+"  # snake_case
+    r"|[a-z]+(?:[A-Z][a-z0-9]+)+"  # camelCase
+    r"|[A-Z][a-z]+(?:[A-Z][a-z]+)+)$"  # CamelCase
+)
+# File paths (e.g. a *path* to a key file) are not secrets themselves.
+_PATH_VALUE = re.compile(r"^(?:~|\.{1,2})?/[\w./\-]+$")
+# Keys that name an identifier/location of a secret rather than the secret.
+_NON_SECRET_KEY = re.compile(
+    r"(?i)(?:_id|_file|_path|_url|_name|_type|_ttl|_expiration|_length)[\"']?\s*[:=]"
 )
 
 _IPV4 = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2})?\b")
@@ -107,48 +117,42 @@ def _redact_ip(match: re.Match[str]) -> str:
     return f"{label}/{prefix}" if prefix else label
 
 
+def _replace_secret(match: re.Match[str], rule: SecretPattern, counts: dict[str, int]) -> str:
+    value = match.group(rule.group)
+    if value is None or _PLACEHOLDER.match(value):
+        return match.group(0)
+    if rule.group and (_CODE_REFERENCE.match(value) or _PATH_VALUE.match(value)):
+        return match.group(0)
+    if rule.name == "assignment" and _NON_SECRET_KEY.search(match.group(0)):
+        return match.group(0)
+    counts[rule.name] = counts.get(rule.name, 0) + 1
+    if rule.group == 0:
+        return f"[REDACTED:{rule.name}]"
+    start, end = match.span(rule.group)
+    offset, whole = match.start(0), match.group(0)
+    return whole[: start - offset] + REDACTED + whole[end - offset :]
+
+
+def _replace_ip(match: re.Match[str], counts: dict[str, int]) -> str:
+    replaced = _redact_ip(match)
+    if replaced != match.group(0):
+        counts["ip_address"] = counts.get("ip_address", 0) + 1
+    return replaced
+
+
 def redact(
     text: str, *, redact_ips: bool = True, environ: dict[str, str] | None = None
 ) -> RedactionResult:
     """Return ``text`` with secrets (and optionally IPv4 addresses) replaced."""
     counts: dict[str, int] = {}
-
-    def bump(name: str, n: int = 1) -> None:
-        counts[name] = counts.get(name, 0) + n
-
     for value in _sensitive_env_values(environ):
         if value in text:
-            bump("env_value", text.count(value))
+            counts["env_value"] = counts.get("env_value", 0) + text.count(value)
             text = text.replace(value, REDACTED)
-
-    for pattern in SECRET_PATTERNS:
-
-        def _sub(match: re.Match[str], pattern: SecretPattern = pattern) -> str:
-            secret = match.group(pattern.group)
-            if secret is None or _PLACEHOLDER.match(secret):
-                return match.group(0)
-            if pattern.group and _CODE_REFERENCE.match(secret):
-                return match.group(0)
-            bump(pattern.name)
-            if pattern.group == 0:
-                return f"[REDACTED:{pattern.name}]"
-            start, end = match.span(pattern.group)
-            offset = match.start(0)
-            whole = match.group(0)
-            return whole[: start - offset] + REDACTED + whole[end - offset :]
-
-        text = pattern.regex.sub(_sub, text)
-
+    for rule in SECRET_PATTERNS:
+        text = rule.regex.sub(partial(_replace_secret, rule=rule, counts=counts), text)
     if redact_ips:
-
-        def _ip_sub(match: re.Match[str]) -> str:
-            replaced = _redact_ip(match)
-            if replaced != match.group(0):
-                bump("ip_address")
-            return replaced
-
-        text = _IPV4.sub(_ip_sub, text)
-
+        text = _IPV4.sub(partial(_replace_ip, counts=counts), text)
     return RedactionResult(text=text, counts=counts)
 
 

@@ -18,3 +18,5 @@ node_modules/
 .env
 .env.*
 !.env.example
+quality-report.json
+gl-code-quality-report.json

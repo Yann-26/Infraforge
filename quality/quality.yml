@@ -1,0 +1,58 @@
+# Code quality thresholds — the ONLY place to tune quality/run_quality.py.
+#
+# Run locally:  make -f agents.mk quality      (or: python quality/run_quality.py)
+# In CI:        job `code_quality` (report-only for now: allow_failure: true)
+#
+# A path that does not exist is skipped with a notice, so this file works both in the
+# full InfraForge repo and in partial checkouts.
+
+python:
+  paths:
+    - orchestrator/app
+    - agents
+    - quality
+  exclude:
+    - "*/tests/*"
+    - "*/__pycache__/*"
+  max_cyclomatic_complexity: 15 # radon cc, per function/method
+  max_function_lines: 80 # def ... to last line, incl. docstring
+  max_file_lines: 500
+  import_cycles:
+    # import-linter `acyclic_siblings` contract, run from `root` for package `package`
+    - root: orchestrator
+      package: app
+    - root: .
+      package: agents
+
+frontend:
+  path: frontend
+  src: src
+  extensions: [js, jsx, ts, tsx]
+  max_complexity: 15 # eslint `complexity`
+  # React components are one function each, so this is looser than for Python.
+  max_function_lines: 150 # eslint `max-lines-per-function` (blank lines/comments skipped)
+  max_file_lines: 400 # eslint `max-lines` (blank lines/comments skipped)
+  circular_imports: true # madge --circular
+  eslint_package: eslint@9.17.0
+  madge_package: madge@8.0.0
+
+secrets:
+  # Uses the same patterns as the agents' redaction (agents/redact.py) plus detect-secrets.
+  # Add `# pragma: allowlist secret` on a line to accept a known false positive.
+  exclude:
+    - ".git/*"
+    - "*/node_modules/*"
+    - ".venv/*"
+    - "*.lock"
+    - "*package-lock.json"
+    - "tests/agents/*" # tests build fake secrets on purpose
+    - "tests/agent_eval/cases/*" # eval logs contain fake credentials to exercise redaction
+  max_file_bytes: 1000000
+  detect_secrets: true
+  detect_secrets_disabled_plugins: # high-entropy plugins are too noisy for IaC repos
+    - Base64HighEntropyString
+    - HexHighEntropyString
+
+report:
+  json: quality-report.json
+  gitlab_codequality: gl-code-quality-report.json

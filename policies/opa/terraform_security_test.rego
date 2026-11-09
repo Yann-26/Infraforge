@@ -10,7 +10,7 @@ file(kind, path, text) := {"path": path, "kind": kind, "added": [{"line": 1, "te
 rules_hit(f) := {d.rule | some d in terraform_security.deny with input as {"files": [f]}}
 
 test_hardcoded_tf_secret if {
-	rules_hit(file("terraform", "terraform/terraform.tfvars", `proxmox_token_secret = "abc123"`)) == {"TF_HARDCODED_SECRET"}
+	rules_hit(file("terraform", "terraform/terraform.tfvars", `proxmox_token_secret = "abc123"`)) == {"TF_HARDCODED_SECRET"} # pragma: allowlist secret
 }
 
 test_tf_variable_reference_is_fine if {
@@ -46,5 +46,5 @@ test_allowlist_comment if {
 }
 
 test_unknown_kind_is_ignored if {
-	count(rules_hit(file("other", "README.md", `password = "hunter22"`))) == 0
+	count(rules_hit(file("other", "README.md", `password = "hunter22"`))) == 0 # pragma: allowlist secret
 }

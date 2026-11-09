@@ -71,6 +71,11 @@ def test_url_credentials_are_redacted():
         "secret: {{ vault_secret }}",
         "token = var.proxmox_token",
         "max_output_tokens: int = 8000",
+        "apiClient.post('/api/auth/refresh', { refresh_token: refreshToken })",
+        "Authorization: Bearer <access_token>",
+        "ansible_ssh_private_key_file: ~/.ssh/id_rsa",
+        'proxmox_token_id = "terraform@pve!infraforge"',
+        "detect-secrets==1.5.0",
     ],
 )
 def test_code_references_and_placeholders_are_not_redacted(line):
