@@ -1,0 +1,8 @@
+# Loaded by observability/prometheus/prometheus.yml via:
+#   scrape_config_files:
+#     - /etc/prometheus/scrape_configs/*.yml
+scrape_configs:
+  - job_name: "pushgateway"
+    honor_labels: true # keep the agent/pipeline/ci_job labels pushed by each CI run
+    static_configs:
+      - targets: ["pushgateway:9091"]

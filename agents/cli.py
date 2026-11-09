@@ -19,9 +19,11 @@ from loguru import logger
 from agents.comment import marker, render_investigation, render_review, should_post_review
 from agents.config import AgentSettings
 from agents.diffs import gitlab_diffs_to_unified
+from agents.feedback import collect
 from agents.gitlab_client import GitLabClient, GitLabError
 from agents.investigator import FailedJob, FailureContext, investigate
 from agents.llm import AnthropicClient, LLMClient, LLMError, UsageTracker
+from agents.metrics import FEEDBACK_JOB, RunMetrics, feedback_registry, push
 from agents.reviewer import ReviewContext, review
 
 
@@ -180,16 +182,21 @@ def cmd_review(args, settings: AgentSettings) -> dict:
         except GitLabError as exc:
             logger.error("could not post MR comment: {}", exc)
 
-    severities = [f.severity for f in result.findings]
     return {
         "agent": "reviewer",
         "outcome": "skipped" if result.skipped else ("ok" if result.llm_ok else "fallback"),
         "failure_reason": result.failure_reason,
         "findings": len(result.findings),
-        "findings_by_severity": {s: severities.count(s) for s in set(severities)},
-        "findings_by_source": {
-            src: sum(f.source == src for f in result.findings) for src in ("llm", "opa")
-        },
+        "findings_detail": [
+            {
+                "file": f.file,
+                "line": f.line,
+                "rule": f.rule,
+                "severity": f.severity,
+                "source": f.source,
+            }
+            for f in result.findings
+        ],
         "filtered": dict(result.filtered),
         "reviewed_files": result.reviewed_files,
         "attempts": result.attempts,
@@ -199,6 +206,25 @@ def cmd_review(args, settings: AgentSettings) -> dict:
         "llm_latency_seconds": round(result.latency_seconds, 3),
         "prompt": result.prompt_id,
         "usage": usage.as_dict(),
+    }
+
+
+# --- feedback -----------------------------------------------------------------
+
+
+def cmd_feedback(args, settings: AgentSettings) -> dict:
+    gitlab = build_gitlab(settings)
+    if gitlab is None:
+        return {"agent": "feedback", "outcome": "skipped", "failure_reason": "not_configured"}
+    counts = collect(gitlab, args.days)
+    pushed = push(
+        feedback_registry(counts), settings, FEEDBACK_JOB, {"window_days": str(args.days)}
+    )
+    return {
+        "agent": "feedback",
+        "outcome": "ok",
+        "counts": {f"{agent}:{verdict}": n for (agent, verdict), n in sorted(counts.items())},
+        "pushed": pushed,
     }
 
 
@@ -222,20 +248,39 @@ def build_parser() -> argparse.ArgumentParser:
     rev.add_argument("--diff-file", help="local unified diff (skips GitLab)")
     rev.add_argument("--mr-title", default="")
     rev.add_argument("--dry-run", action="store_true", help="print the comment, do not post")
+
+    fb = sub.add_parser("feedback", help="count 👍/👎 on agent comments and push metrics")
+    fb.add_argument("--days", type=int, default=30)
     return parser
 
 
-COMMANDS = {"investigate": cmd_investigate, "review": cmd_review}
+COMMANDS = {"investigate": cmd_investigate, "review": cmd_review, "feedback": cmd_feedback}
+
+
+def export_metrics(report: dict, settings: AgentSettings) -> None:
+    if report.get("agent") not in ("investigator", "reviewer"):
+        return
+    try:
+        metrics = RunMetrics(report["agent"])
+        metrics.record(report)
+        metrics.export(settings)
+    except Exception as exc:  # noqa: BLE001 - metrics must never fail the job
+        logger.warning("metrics export failed: {}", exc)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     logger.remove()
-    logger.add(sys.stderr, level="INFO", format="{time:HH:mm:ss} | {level} | agents | {message}")
+    logger.add(
+        lambda msg: sys.stderr.write(msg),  # resolve stderr at write time
+        level="INFO",
+        format="{time:HH:mm:ss} | {level} | agents | {message}",
+    )
     try:
         settings = AgentSettings()
         report = COMMANDS[args.command](args, settings)
         _write_report(args.output, report)
+        export_metrics(report, settings)
     except Exception:  # noqa: BLE001 - never fail the pipeline because of the agent
         logger.exception("agent crashed; ignoring so the pipeline result is unchanged")
     return 0
