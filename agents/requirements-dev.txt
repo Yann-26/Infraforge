@@ -1,0 +1,8 @@
+-r requirements.txt
+pytest==9.2.0
+ruff==0.17.4
+black==26.10.1
+# Code quality stage (quality/run_quality.py)
+radon==6.0.1
+import-linter==2.16
+detect-secrets==1.5.0
