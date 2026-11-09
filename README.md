@@ -441,6 +441,7 @@ See [SECURITY.md](docs/SECURITY.md) for the full threat model.
 | [Security](docs/SECURITY.md) | Threat model and controls |
 | [Threat Model](architecture/threat-model.md) | STRIDE analysis |
 | [Demo Script](docs/DEMO.md) | 5-minute demo walkthrough |
+| [AI Agents](docs/AI_AGENTS.md) | CI failure investigator, MR reviewer, code quality checks |
 
 ---
 
