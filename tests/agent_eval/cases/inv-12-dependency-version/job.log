@@ -1,0 +1,24 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image python:3.11 ...
+Pulling docker image python:3.11 ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ pip install -r orchestrator/requirements.txt --quiet
+ERROR: Cannot install -r orchestrator/requirements.txt (line 28) and pydantic==2.5.3 because these package versions have conflicting dependencies.
+
+The conflict is caused by:
+    The user requested pydantic==2.5.3
+    pydantic-settings 2.15.0 depends on pydantic>=2.7.0
+
+To fix this you could try to:
+1. loosen the range of package versions you've specified
+2. remove package versions to allow pip to attempt to solve the dependency conflict
+
+ERROR: ResolutionImpossible: for help visit https://pip.pypa.io/en/latest/topics/dependency-resolution/#dealing-with-dependency-conflicts
+ERROR: Job failed: exit code 1

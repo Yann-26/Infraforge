@@ -1,0 +1,12 @@
+agent: investigator
+job_name: secret_scan
+stage: security
+description: 'detect-secrets blocks the MR: a Proxmox token secret was committed to
+  terraform.tfvars.'
+expected:
+  category: lint_policy
+  file: terraform/terraform.tfvars
+  keywords:
+  - TF_VAR
+  - CI/CD variable
+  - rotate

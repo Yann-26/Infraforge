@@ -1,0 +1,12 @@
+agent: reviewer
+mr_title: Enable internet for isolated env (package mirror)
+description: 'Violates OPA internet_access_001: isolated environments cannot have
+  internet access.'
+expected:
+  findings:
+  - file: terraform/environments/isolated/terraform.tfvars
+    lines:
+    - 5
+    keywords:
+    - internet
+    - isolat

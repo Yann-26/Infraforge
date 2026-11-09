@@ -1,0 +1,25 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image hashicorp/terraform:1.7.0 ...
+Pulling docker image hashicorp/terraform:1.7.0 ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ cd terraform && terraform init -input=false
+Terraform has been successfully initialized!
+$ terraform plan -input=false -var-file=environments/research/terraform.tfvars -out=plan.tfplan
+╷
+│ Error: No value for required variable
+│
+│   on variables.tf line 9:
+│    9: variable "proxmox_token_secret" {
+│
+│ The root module input variable "proxmox_token_secret" is not set, and has
+│ no default value. Use a -var or -var-file command line argument to provide
+│ a value for this variable.
+╵
+ERROR: Job failed: exit code 1

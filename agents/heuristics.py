@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 # (category, weight, pattern). Higher weight wins ties; infra noise is checked first
 # because a network error can look like any other failure.
 RULES: list[tuple[str, int, re.Pattern[str]]] = [
-    (cat, w, re.compile(p, re.IGNORECASE))
-    for cat, w, p in [
+    (cat, w, re.compile(p, 0 if case_sensitive else re.IGNORECASE))
+    for cat, w, p, *case_sensitive in [
         ("flaky_infra", 5, r"could not resolve host|temporary failure in name resolution"),
         ("flaky_infra", 5, r"connection (reset|refused|timed out)|i/o timeout|tls handshake"),
         ("flaky_infra", 5, r"no space left on device|runner system failure|oomkilled"),
@@ -23,14 +23,19 @@ RULES: list[tuple[str, int, re.Pattern[str]]] = [
         ("dependency", 4, r"could not find a version that satisfies|no matching distribution"),
         ("dependency", 4, r"npm err! code (eresolve|e404|etarget)|resolutionimpossible"),
         ("dependency", 4, r"failed to (query|install) (available )?provider|incompatible provider"),
-        ("terraform", 3, r"^\s*[│|]?\s*error: .+"),
+        # Terraform prints "Error:" (often after a "│" box char); pip/npm print "ERROR:".
+        ("terraform", 3, r"^\s*[│|]?\s*Error: .+", True),
         ("terraform", 2, r"on [\w./\-]+\.tf(vars)? line \d+"),
         ("ansible_task", 4, r"^fatal: \[|failed! =>|^error! "),
         ("ansible_task", 3, r"play recap.*failed=[1-9]|unreachable=[1-9]"),
         ("lint_policy", 4, r"\b(ansible-lint|flake8|ruff|eslint|black|isort|yamllint)\b.*"),
         ("lint_policy", 4, r"would reformat|\d+ problems? \(\d+ errors?|violations? found"),
         ("lint_policy", 4, r"\[[a-z\-]+\[[a-z\-]+\]\]|\b[EWF]\d{3}\b|policy violation|deny\["),
-        ("lint_policy", 4, r"potential secrets? (detected|found)|terraform fmt.*-check"),
+        (
+            "lint_policy",
+            4,
+            r"potential secrets? (detected|found|about to be committed)|terraform fmt.*-check",
+        ),
         (
             "test_failure",
             4,

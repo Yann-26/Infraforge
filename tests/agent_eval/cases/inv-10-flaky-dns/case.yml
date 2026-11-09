@@ -1,0 +1,11 @@
+agent: investigator
+job_name: python_tests
+stage: test
+description: Runner lost DNS while installing packages; unrelated to the (docs-only)
+  change.
+expected:
+  category: flaky_infra
+  keywords:
+  - retry
+  - re-run
+  - rerun

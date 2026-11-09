@@ -1,0 +1,9 @@
+agent: investigator
+job_name: python_tests
+stage: test
+description: MR pins pydantic-settings to a version that requires a newer pydantic.
+expected:
+  category: dependency
+  file: orchestrator/requirements.txt
+  keywords:
+  - pydantic

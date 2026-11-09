@@ -1,0 +1,34 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image python:3.11 ...
+Pulling docker image python:3.11 ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ pip install -r orchestrator/requirements.txt --quiet
+$ cd orchestrator && pytest tests/ --tb=short
+============================= test session starts ==============================
+platform linux -- Python 3.11.10, pytest-8.3.3, pluggy-1.5.0
+rootdir: /builds/yannassiri26/infraforge/orchestrator
+plugins: asyncio-0.24.0, anyio-4.6.2
+collected 18 items
+
+tests/test_auth.py ......                                                [ 33%]
+tests/test_policy_service.py ..F...                                      [ 66%]
+tests/test_validation.py ......                                          [100%]
+
+=================================== FAILURES ===================================
+____________ test_sensitive_data_without_isolation_is_critical ____________
+tests/test_policy_service.py:41: in test_sensitive_data_without_isolation_is_critical
+    assert violations[0]["severity"] == "critical"
+E   AssertionError: assert 'warning' == 'critical'
+E     - critical
+E     + warning
+=========================== short test summary info ============================
+FAILED tests/test_policy_service.py::test_sensitive_data_without_isolation_is_critical - AssertionError: assert 'warning' == 'critical'
+========================= 1 failed, 17 passed in 2.31s =========================
+ERROR: Job failed: exit code 1

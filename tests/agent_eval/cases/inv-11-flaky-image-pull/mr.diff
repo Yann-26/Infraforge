@@ -1,0 +1,10 @@
+diff --git a/terraform/variables.tf b/terraform/variables.tf
+--- a/terraform/variables.tf
++++ b/terraform/variables.tf
+@@ -20,6 +20,7 @@ variable "memory_mb" {
+ variable "disk_gb" {
+-  description = "Disk size"
++  description = "Disk size in GB"
+   type        = number
+   default     = 100
+ }

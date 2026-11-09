@@ -1,0 +1,20 @@
+agent: reviewer
+mr_title: Allow deleting infrastructure requests
+description: Removes the admin role check and builds SQL with an f-string.
+expected:
+  findings:
+  - file: orchestrator/app/api/requests.py
+    lines:
+    - 95
+    - 96
+    keywords:
+    - auth
+    - role
+    - admin
+  - file: orchestrator/app/api/requests.py
+    lines:
+    - 98
+    - 99
+    keywords:
+    - sql
+    - inject

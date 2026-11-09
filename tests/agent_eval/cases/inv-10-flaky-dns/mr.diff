@@ -1,0 +1,8 @@
+diff --git a/docs/OPERATIONS.md b/docs/OPERATIONS.md
+--- a/docs/OPERATIONS.md
++++ b/docs/OPERATIONS.md
+@@ -1,4 +1,4 @@
+ # InfraForge Operations Guide
+-
++(updated runbook)
+ ## Starting Services

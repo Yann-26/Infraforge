@@ -1,0 +1,10 @@
+diff --git a/terraform/environments/isolated/terraform.tfvars b/terraform/environments/isolated/terraform.tfvars
+--- a/terraform/environments/isolated/terraform.tfvars
++++ b/terraform/environments/isolated/terraform.tfvars
+@@ -1,5 +1,5 @@
+ environment = "isolated"
+ vlan_id     = 400
+ network_cidr = "10.100.40.0/24"
+ isolated    = true
+-allow_internet = false
++allow_internet = true

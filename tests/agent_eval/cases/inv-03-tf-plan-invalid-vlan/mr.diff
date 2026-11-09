@@ -1,0 +1,10 @@
+diff --git a/terraform/environments/research/terraform.tfvars b/terraform/environments/research/terraform.tfvars
+--- a/terraform/environments/research/terraform.tfvars
++++ b/terraform/environments/research/terraform.tfvars
+@@ -1,5 +1,5 @@
+ environment = "research"
+-vlan_id     = 200
++vlan_id     = 5000
+ network_cidr = "10.100.20.0/24"
+ isolated    = false
+ allow_internet = true

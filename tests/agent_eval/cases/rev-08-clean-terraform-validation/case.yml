@@ -1,0 +1,5 @@
+agent: reviewer
+mr_title: Validate VLAN id range in VM module
+description: Adds variable validation; nothing should be reported.
+expected:
+  findings: []

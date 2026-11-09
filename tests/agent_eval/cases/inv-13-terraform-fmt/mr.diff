@@ -1,0 +1,9 @@
+diff --git a/terraform/modules/vm/main.tf b/terraform/modules/vm/main.tf
+--- a/terraform/modules/vm/main.tf
++++ b/terraform/modules/vm/main.tf
+@@ -16,6 +16,7 @@ resource "proxmox_vm_qemu" "vm" {
+   # Resources
+   cores   = var.cpu_cores
+   memory  = var.memory_mb
+   sockets = 1
++  numa = true

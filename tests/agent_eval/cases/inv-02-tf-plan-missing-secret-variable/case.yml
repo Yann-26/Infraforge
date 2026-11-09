@@ -1,0 +1,11 @@
+agent: investigator
+job_name: terraform_plan
+stage: plan
+description: Plan needs proxmox_token_secret; the CI variable TF_VAR_proxmox_token_secret
+  is not set.
+expected:
+  category: terraform_plan
+  keywords:
+  - TF_VAR_proxmox_token_secret
+  - CI/CD variable
+  - CI variable

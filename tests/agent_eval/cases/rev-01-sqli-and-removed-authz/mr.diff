@@ -1,0 +1,17 @@
+diff --git a/orchestrator/app/api/requests.py b/orchestrator/app/api/requests.py
+--- a/orchestrator/app/api/requests.py
++++ b/orchestrator/app/api/requests.py
+@@ -92,8 +92,12 @@ async def get_request(request_id: str, db: Session = Depends(get_db)):
+     return request
+
+
+-@router.delete("/api/requests/{request_id}")
+-async def delete_request(request_id: str, db: Session = Depends(get_db), user=Depends(require_role("admin"))):
+-    db.query(InfrastructureRequest).filter(InfrastructureRequest.id == request_id).delete()
++@router.delete("/api/requests/{request_id}")
++async def delete_request(request_id: str, db: Session = Depends(get_db)):
++    logger.info(f"Deleting request {request_id}")
++    db.execute(text(f"DELETE FROM infrastructure_requests WHERE id = '{request_id}'"))
++    db.execute(text(f"DELETE FROM audit_log WHERE request_id = '{request_id}'"))
+     db.commit()
+     return {"deleted": request_id}

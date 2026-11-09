@@ -1,0 +1,25 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image node:20-alpine ...
+Pulling docker image node:20-alpine ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ cd frontend && npm ci --silent
+$ npm run lint
+
+> infraforge-frontend@0.1.0 lint
+> eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0
+
+
+/builds/yannassiri26/infraforge/frontend/src/pages/Pipeline.jsx
+  48:6  warning  React Hook useEffect has a missing dependency: 'fetchPipelines'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 1 problem (0 errors, 1 warning)
+
+ESLint found too many warnings (maximum: 0).
+ERROR: Job failed: exit code 1

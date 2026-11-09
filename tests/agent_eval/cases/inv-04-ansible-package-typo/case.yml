@@ -1,0 +1,9 @@
+agent: investigator
+job_name: ansible_configure
+stage: configure
+description: Typo 'htopp' in the apt package list; the apt task fails on the VM.
+expected:
+  category: ansible_task
+  file: ansible/playbook.yml
+  keywords:
+  - htop

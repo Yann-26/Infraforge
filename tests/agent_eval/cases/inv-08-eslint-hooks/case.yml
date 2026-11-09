@@ -1,0 +1,11 @@
+agent: investigator
+job_name: frontend_lint
+stage: validate
+description: npm run lint (--max-warnings 0) fails on react-hooks/exhaustive-deps.
+expected:
+  category: lint_policy
+  file: frontend/src/pages/Pipeline.jsx
+  keywords:
+  - fetchPipelines
+  - useCallback
+  - dependency

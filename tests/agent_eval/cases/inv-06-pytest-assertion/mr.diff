@@ -1,0 +1,12 @@
+diff --git a/orchestrator/app/services/policy_service.py b/orchestrator/app/services/policy_service.py
+--- a/orchestrator/app/services/policy_service.py
++++ b/orchestrator/app/services/policy_service.py
+@@ -58,7 +58,7 @@ class PolicyService:
+             violations.append(
+                 {
+                     "policy_id": "knowledge_security_001",
+-                    "severity": "critical",
++                    "severity": "warning",
+                     "message": "Sensitive/restricted data requires network isolation",
+                     "remediation": "Enable network isolation or reduce data classification",
+                 }

@@ -1,0 +1,9 @@
+agent: investigator
+job_name: ansible_configure
+stage: configure
+description: Bad indentation in a new ufw task makes the playbook unparseable.
+expected:
+  category: ansible_task
+  file: ansible/playbook.yml
+  keywords:
+  - indent

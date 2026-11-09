@@ -1,0 +1,24 @@
+diff --git a/frontend/src/pages/Infrastructure.jsx b/frontend/src/pages/Infrastructure.jsx
+--- a/frontend/src/pages/Infrastructure.jsx
++++ b/frontend/src/pages/Infrastructure.jsx
+@@ -1,4 +1,5 @@
+ import { useEffect, useState } from 'react';
++import { Loader2 } from 'lucide-react';
+ import { InfrastructureTable } from '../components/Tables';
+ import api from '../api/client';
+
+@@ -20,6 +21,14 @@ const Infrastructure = () => {
+       .finally(() => setLoading(false));
+   }, []);
+
++  if (loading) {
++    return (
++      <div className="flex h-64 items-center justify-center" role="status" aria-live="polite">
++        <Loader2 className="h-6 w-6 animate-spin text-indigo-600" aria-hidden="true" />
++        <span className="ml-2 text-sm text-gray-600">Loading infrastructure…</span>
++      </div>
++    );
++  }
++
+   return (
+     <div className="space-y-6">

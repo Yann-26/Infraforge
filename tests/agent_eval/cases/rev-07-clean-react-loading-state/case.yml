@@ -1,0 +1,5 @@
+agent: reviewer
+mr_title: Show a spinner while infrastructure loads
+description: Clean UI change; nothing should be reported.
+expected:
+  findings: []

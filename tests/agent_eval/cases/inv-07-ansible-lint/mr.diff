@@ -1,0 +1,17 @@
+diff --git a/ansible/playbook.yml b/ansible/playbook.yml
+--- a/ansible/playbook.yml
++++ b/ansible/playbook.yml
+@@ -6,7 +6,7 @@
+     - name: Update apt cache
+       apt:
+-        update_cache: true
++        update_cache: yes
+         cache_valid_time: 3600
+@@ -28,3 +28,6 @@
+     - name: Enable UFW
+       ufw:
+         state: enabled
++
++    - service:
++        name: prometheus-node-exporter
++        state: started

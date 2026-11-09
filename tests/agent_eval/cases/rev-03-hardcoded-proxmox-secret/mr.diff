@@ -1,0 +1,12 @@
+diff --git a/terraform/terraform.tfvars b/terraform/terraform.tfvars
+--- a/terraform/terraform.tfvars
++++ b/terraform/terraform.tfvars
+@@ -3,7 +3,7 @@
+
+ proxmox_url          = "https://proxmox.example.com:8006"
+ proxmox_token_id     = "terraform@pve!infraforge"
+-proxmox_token_secret = "your-secret-token-here"
++proxmox_token_secret = "3f9c2b7e-1d4a-4c8e-b2a6-9e0f5d7c1a34"
+
+ # Environment: research
+ # VLAN: 200

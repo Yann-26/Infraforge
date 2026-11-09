@@ -1,0 +1,20 @@
+diff --git a/frontend/src/pages/Pipeline.jsx b/frontend/src/pages/Pipeline.jsx
+--- a/frontend/src/pages/Pipeline.jsx
++++ b/frontend/src/pages/Pipeline.jsx
+@@ -38,11 +38,15 @@ const Pipeline = () => {
+   const [pipelines, setPipelines] = useState([]);
+   const [loading, setLoading] = useState(true);
++  const [statusFilter, setStatusFilter] = useState('all');
+
+-  useEffect(() => {
+-    api.get('/api/pipeline').then((r) => setPipelines(r.data)).finally(() => setLoading(false));
+-  }, []);
++  const fetchPipelines = async () => {
++    const r = await api.get('/api/pipeline', { params: { status: statusFilter } });
++    setPipelines(r.data);
++    setLoading(false);
++  };
++
++  useEffect(() => {
++    fetchPipelines();
++  }, [statusFilter]);

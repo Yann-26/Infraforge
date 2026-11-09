@@ -1,0 +1,14 @@
+diff --git a/terraform/main.tf b/terraform/main.tf
+--- a/terraform/main.tf
++++ b/terraform/main.tf
+@@ -9,9 +9,9 @@ provider "proxmox" {
+ module "vm" {
+   source        = "./modules/vm"
+   vm_name       = var.vm_name
+   target_node   = var.target_node
+   template_name = var.template_name
+-  cpu_cores     = var.cpu_cores
++  cpu           = var.cpu_cores
+   memory_mb     = var.memory_mb
+   disk_gb       = var.disk_gb
+   vlan_id       = var.vlan_id

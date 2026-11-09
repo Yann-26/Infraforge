@@ -1,0 +1,15 @@
+diff --git a/terraform/modules/vm/variables.tf b/terraform/modules/vm/variables.tf
+--- a/terraform/modules/vm/variables.tf
++++ b/terraform/modules/vm/variables.tf
+@@ -52,6 +52,11 @@ variable "vlan_id" {
+   description = "VLAN ID"
+   type        = number
+   default     = 200
++
++  validation {
++    condition     = var.vlan_id >= 1 && var.vlan_id <= 4094
++    error_message = "vlan_id must be between 1 and 4094."
++  }
+ }
+
+ variable "ssh_user" {

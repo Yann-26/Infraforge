@@ -1,0 +1,9 @@
+agent: investigator
+job_name: terraform_fmt
+stage: validate
+description: terraform fmt -check (made blocking) lists an unformatted module file.
+expected:
+  category: lint_policy
+  file: terraform/modules/vm/main.tf
+  keywords:
+  - terraform fmt
