@@ -1,0 +1,11 @@
+diff --git a/ansible/playbook.yml b/ansible/playbook.yml
+--- a/ansible/playbook.yml
++++ b/ansible/playbook.yml
+@@ -14,7 +14,7 @@
+         name:
+           - curl
+           - git
+-          - htop
++          - htopp
+           - vim
+         state: present

@@ -1,0 +1,28 @@
+# AI agents add-on for docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.agents.yml up -d pushgateway prometheus grafana
+#   (or: make -f agents.mk agents-up)
+#
+# CI agent jobs push their metrics to the Pushgateway (AGENT_PUSHGATEWAY_URL); Prometheus
+# scrapes it with honor_labels so the agent/pipeline labels from each run are kept.
+services:
+  pushgateway:
+    image: prom/pushgateway:v1.9.0
+    ports:
+      - "9091:9091"
+    command:
+      - "--persistence.file=/pushgateway/metrics.db"
+      - "--persistence.interval=1m"
+    volumes:
+      - pushgateway-data:/pushgateway
+    networks:
+      - infraforge-network
+
+  prometheus:
+    volumes:
+      - ./observability/prometheus/scrape_configs:/etc/prometheus/scrape_configs:ro
+    depends_on:
+      - pushgateway
+
+volumes:
+  pushgateway-data:

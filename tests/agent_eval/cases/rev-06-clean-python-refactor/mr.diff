@@ -1,0 +1,32 @@
+diff --git a/orchestrator/app/services/netbox_service.py b/orchestrator/app/services/netbox_service.py
+--- a/orchestrator/app/services/netbox_service.py
++++ b/orchestrator/app/services/netbox_service.py
+@@ -1,20 +1,24 @@
+ import os
+-from typing import Dict, List, Optional
++from typing import Any
+
+ import pynetbox
+ from loguru import logger
+
++NETBOX_TIMEOUT_SECONDS = 10
++
+
+ class NetBoxService:
+     """Service for NetBox integration"""
+
+-    def __init__(self):
++    def __init__(self) -> None:
+         self.url = os.getenv("NETBOX_URL", "http://localhost:8000")
+         self.token = os.getenv("NETBOX_TOKEN", "")
+         self.nb = pynetbox.api(self.url, token=self.token)
++        self.nb.http_session.timeout = NETBOX_TIMEOUT_SECONDS
+
+-    def list_sites(self) -> List[Dict]:
++    def list_sites(self) -> list[dict[str, Any]]:
+         """Return all NetBox sites."""
+         try:
+             return [dict(site) for site in self.nb.dcim.sites.all()]
+         except Exception as e:
+             logger.error(f"Failed to list sites: {e}")
+             return []

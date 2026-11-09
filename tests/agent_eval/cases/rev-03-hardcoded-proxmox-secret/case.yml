@@ -1,0 +1,12 @@
+agent: reviewer
+mr_title: Fix plan in CI by adding Proxmox token
+description: Commits a real-looking Proxmox API token secret.
+expected:
+  findings:
+  - file: terraform/terraform.tfvars
+    lines:
+    - 6
+    keywords:
+    - secret
+    - credential
+    - token

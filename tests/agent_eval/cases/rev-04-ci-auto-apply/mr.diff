@@ -1,0 +1,21 @@
+diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml
+--- a/.gitlab-ci.yml
++++ b/.gitlab-ci.yml
+@@ -141,12 +141,16 @@ approval_gate:
+ # ┌─────────────────────────────────────────────────────────────────┐
+ # │  PROXMOX APPLY — Uncomment when Proxmox infrastructure is ready │
+ # └─────────────────────────────────────────────────────────────────┘
+ #
+-# terraform_apply_proxmox:
+-#   stage: apply
++terraform_apply_proxmox:
++  stage: apply
++  image: hashicorp/terraform:${TERRAFORM_VERSION}
++  script:
++    - cd terraform
++    - terraform init
++    - terraform apply -auto-approve -var-file=environments/production/terraform.tfvars
++  only:
++    - main
++  tags:
++    - docker

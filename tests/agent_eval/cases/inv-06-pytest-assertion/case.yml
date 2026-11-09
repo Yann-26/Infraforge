@@ -1,0 +1,10 @@
+agent: investigator
+job_name: python_tests
+stage: test
+description: MR changes knowledge_security_001 severity to 'warning' but a test expects
+  'critical'.
+expected:
+  category: test_failure
+  file: orchestrator/tests/test_policy_service.py
+  keywords:
+  - critical

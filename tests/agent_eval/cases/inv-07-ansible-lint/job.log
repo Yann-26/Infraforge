@@ -1,0 +1,29 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image python:3.11 ...
+Pulling docker image python:3.11 ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ pip install ansible-lint==24.2.0 --quiet
+$ ansible-lint ansible/playbook.yml
+WARNING  Listing 2 violation(s) that are fatal
+yaml[truthy]: Truthy value should be one of [false, true]
+ansible/playbook.yml:9
+
+name[missing]: All tasks should be named.
+ansible/playbook.yml:31 Task/Handler: ansible.builtin.service name=prometheus-node-exporter state=started
+
+Read documentation for instructions on how to ignore specific rule violations.
+
+                Rule Violation Summary
+ count tag           profile    rule associated tags
+     1 name[missing] basic      idiom
+     1 yaml[truthy]  basic      formatting, yaml
+
+Failed: 2 failure(s), 0 warning(s) on 1 files. Last profile that met the validation criteria was 'min'.
+ERROR: Job failed: exit code 2

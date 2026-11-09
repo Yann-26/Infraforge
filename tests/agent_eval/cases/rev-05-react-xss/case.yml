@@ -1,0 +1,13 @@
+agent: reviewer
+mr_title: Render request description as rich text
+description: Injects user-supplied description as raw HTML (XSS). The localStorage
+  token change is medium and should be filtered at the default threshold.
+expected:
+  findings:
+  - file: frontend/src/pages/RequestDetails.jsx
+    lines:
+    - 86
+    keywords:
+    - xss
+    - html
+    - sanitiz

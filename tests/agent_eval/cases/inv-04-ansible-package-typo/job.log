@@ -1,0 +1,28 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image cytopia/ansible:9-tools ...
+Pulling docker image cytopia/ansible:9-tools ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ ansible-playbook -i ansible/inventory.yml ansible/playbook.yml
+
+PLAY [Configure VM for InfraForge] *********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [vm-research-01]
+
+TASK [Update apt cache] ********************************************************
+ok: [vm-research-01]
+
+TASK [Install essential packages] **********************************************
+fatal: [vm-research-01]: FAILED! => {"cache_update_time": 1762700000, "cache_updated": false, "changed": false, "msg": "No package matching 'htopp' is available"}
+
+PLAY RECAP *********************************************************************
+vm-research-01             : ok=2    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+ERROR: Job failed: exit code 2

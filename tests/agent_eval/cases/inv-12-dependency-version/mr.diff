@@ -1,0 +1,12 @@
+diff --git a/orchestrator/requirements.txt b/orchestrator/requirements.txt
+--- a/orchestrator/requirements.txt
++++ b/orchestrator/requirements.txt
+@@ -24,7 +24,7 @@ passlib==1.7.4
+ prometheus_client==0.26.0
+ psycopg2-binary==2.9.12
+ pyasn1==0.6.4
+ pycparser==3.0
+-pydantic==2.13.5
++pydantic==2.5.3
+ pydantic-settings==2.15.0
+ pydantic_core==2.46.5

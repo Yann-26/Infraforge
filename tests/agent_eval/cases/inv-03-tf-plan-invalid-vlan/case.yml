@@ -1,0 +1,11 @@
+agent: investigator
+job_name: terraform_plan
+stage: plan
+description: MR sets vlan_id = 5000; Proxmox rejects VLAN tags above 4094 at plan/refresh
+  time.
+expected:
+  category: terraform_plan
+  file: terraform/environments/research/terraform.tfvars
+  keywords:
+  - '4094'
+  - vlan

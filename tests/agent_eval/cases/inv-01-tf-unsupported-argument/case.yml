@@ -1,0 +1,9 @@
+agent: investigator
+job_name: terraform_validate
+stage: validate
+description: MR renames module argument cpu_cores -> cpu; terraform validate fails.
+expected:
+  category: terraform_validate
+  file: terraform/main.tf
+  keywords:
+  - cpu_cores

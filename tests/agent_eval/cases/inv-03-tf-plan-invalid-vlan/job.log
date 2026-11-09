@@ -1,0 +1,25 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image hashicorp/terraform:1.7.0 ...
+Pulling docker image hashicorp/terraform:1.7.0 ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ cd terraform && terraform init -input=false
+Terraform has been successfully initialized!
+$ terraform plan -input=false -var-file=environments/research/terraform.tfvars -out=plan.tfplan
+module.vm.proxmox_vm_qemu.vm: Refreshing state... [id=pve/qemu/142]
+╷
+│ Error: 400 Parameter verification failed.
+│
+│   with module.vm.proxmox_vm_qemu.vm,
+│   on modules/vm/main.tf line 11, in resource "proxmox_vm_qemu" "vm":
+│   11: resource "proxmox_vm_qemu" "vm" {
+│
+│ net0: invalid format - value '5000' does not match format 'pve-vlan-id' (tag: must be between 1 and 4094)
+╵
+ERROR: Job failed: exit code 1

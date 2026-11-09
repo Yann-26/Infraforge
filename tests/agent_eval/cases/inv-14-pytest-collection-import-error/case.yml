@@ -1,0 +1,10 @@
+agent: investigator
+job_name: python_tests
+stage: test
+description: MR imports a module that was not added (vault_service); test collection
+  fails. Looks like a dependency error but is a code bug.
+expected:
+  category: test_failure
+  file: orchestrator/app/main.py
+  keywords:
+  - vault_service

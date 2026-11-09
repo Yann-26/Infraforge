@@ -1,0 +1,10 @@
+agent: investigator
+job_name: terraform_validate
+stage: validate
+description: Docker Hub rate limit when pulling the job image.
+expected:
+  category: flaky_infra
+  keywords:
+  - rate limit
+  - mirror
+  - retry

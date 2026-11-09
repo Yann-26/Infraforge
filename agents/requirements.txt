@@ -1,0 +1,9 @@
+# Runtime dependencies for the InfraForge AI agents (CI jobs).
+# Versions aligned with orchestrator/requirements.txt where shared.
+anthropic==2.6.0
+httpx==0.28.1
+loguru==0.7.3
+prometheus_client==0.26.0
+pydantic==2.13.5
+pydantic-settings==2.15.0
+PyYAML==6.0.3

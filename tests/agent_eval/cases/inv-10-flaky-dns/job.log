@@ -1,0 +1,18 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image python:3.11 ...
+Pulling docker image python:3.11 ...
+Preparing environment
+Running on runner-t3xyz12-project-1234-concurrent-0 via ci-runner-01...
+Getting source from Git repository
+Fetching changes with git depth set to 20...
+Checking out 4a1c9e2f as detached HEAD (ref is refs/merge-requests/42/head)...
+Executing "step_script" stage of the job script
+$ pip install -r orchestrator/requirements.txt --quiet
+WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f3a2c1d5e50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/fastapi/
+WARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f3a2c1d6090>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/fastapi/
+WARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7f3a2c1d61d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/fastapi/
+ERROR: Could not find a version that satisfies the requirement fastapi==0.141.1 (from versions: none)
+ERROR: No matching distribution found for fastapi==0.141.1
+ERROR: Job failed: exit code 1

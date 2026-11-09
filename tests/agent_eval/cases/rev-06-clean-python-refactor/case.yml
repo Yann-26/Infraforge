@@ -1,0 +1,5 @@
+agent: reviewer
+mr_title: Add type hints and timeout constant to NetBox service
+description: Clean refactor; nothing should be reported.
+expected:
+  findings: []

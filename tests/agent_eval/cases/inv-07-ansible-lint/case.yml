@@ -1,0 +1,9 @@
+agent: investigator
+job_name: ansible_lint
+stage: validate
+description: ansible-lint (blocking) rejects truthy 'yes' and a task without a name.
+expected:
+  category: lint_policy
+  file: ansible/playbook.yml
+  keywords:
+  - 'true'

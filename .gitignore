@@ -1,0 +1,22 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Agent run outputs
+agent-metrics.prom
+agent-report.json
+tests/agent_eval/results/
+
+# Frontend
+node_modules/
+
+# Never commit env files
+.env
+.env.*
+!.env.example
+quality-report.json
+gl-code-quality-report.json

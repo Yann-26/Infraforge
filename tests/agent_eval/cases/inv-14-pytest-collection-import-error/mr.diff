@@ -1,0 +1,14 @@
+diff --git a/orchestrator/app/main.py b/orchestrator/app/main.py
+--- a/orchestrator/app/main.py
++++ b/orchestrator/app/main.py
+@@ -28,6 +28,7 @@ from app.services.monitoring_service import MonitoringService
+ from app.services.netbox_service import NetBoxService
+ from app.services.pipeline_service import PipelineService
+ from app.services.policy_service import PolicyService
++from app.services.vault_service import VaultService
+ from app.services.provisioning_service import ProvisioningService
+ from app.websocket.manager import manager
+@@ -60,6 +61,7 @@ netbox_service = NetBoxService()
+ policy_service = PolicyService()
+ pipeline_service = PipelineService()
++vault_service = VaultService()

@@ -1,0 +1,7 @@
+Running with gitlab-runner 17.5.2 (c6eae8b7)
+  on docker-runner-01 t3_xYz12, system ID: s_4f8e2a1b9c
+Preparing the "docker" executor
+Using Docker executor with image hashicorp/terraform:1.7.0 ...
+Pulling docker image hashicorp/terraform:1.7.0 ...
+WARNING: Failed to pull image with policy "always": toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit (manager.go:250:0s)
+ERROR: Job failed: failed to pull image "hashicorp/terraform:1.7.0" with specified policies [always]: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit (manager.go:250:0s)
