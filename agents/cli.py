@@ -16,12 +16,13 @@ from pathlib import Path
 
 from loguru import logger
 
-from agents.comment import marker, render_investigation
+from agents.comment import marker, render_investigation, render_review, should_post_review
 from agents.config import AgentSettings
 from agents.diffs import gitlab_diffs_to_unified
 from agents.gitlab_client import GitLabClient, GitLabError
 from agents.investigator import FailedJob, FailureContext, investigate
 from agents.llm import AnthropicClient, LLMClient, LLMError, UsageTracker
+from agents.reviewer import ReviewContext, review
 
 
 def build_llm(settings: AgentSettings) -> tuple[LLMClient | None, str]:
@@ -141,6 +142,66 @@ def cmd_investigate(args, settings: AgentSettings) -> dict:
     }
 
 
+# --- review -------------------------------------------------------------------
+
+
+def _review_context(args, gitlab: GitLabClient | None, settings: AgentSettings) -> ReviewContext:
+    if args.diff_file:
+        diff = Path(args.diff_file).read_text(encoding="utf-8")
+        return ReviewContext(diff, args.mr_title, "", settings.commit_sha or "local")
+    if gitlab is None or settings.mr_iid is None:
+        return ReviewContext("")
+    mr = gitlab.merge_request(settings.mr_iid)
+    diff = gitlab_diffs_to_unified(gitlab.merge_request_diffs(settings.mr_iid))
+    sha = settings.commit_sha or mr.get("sha") or "unknown"
+    return ReviewContext(diff, mr.get("title", ""), mr.get("description") or "", sha)
+
+
+def cmd_review(args, settings: AgentSettings) -> dict:
+    started = time.monotonic()
+    usage = _usage(settings)
+    gitlab = None if args.diff_file else build_gitlab(settings)
+    llm, llm_reason = build_llm(settings)
+    try:
+        ctx = _review_context(args, gitlab, settings)
+    except (GitLabError, OSError) as exc:
+        logger.error("could not fetch the MR diff: {}", exc)
+        ctx = ReviewContext("")
+
+    result = review(ctx, llm, settings, usage, llm_unavailable_reason=llm_reason)
+    body = render_review(result, ctx, usage, settings.severity_threshold)
+    print(body)
+
+    posted = False
+    if not args.dry_run and should_post_review(result):
+        try:
+            key = marker("reviewer", f"sha-{ctx.commit_sha}")
+            posted = post_comment(gitlab, settings, body, key)
+        except GitLabError as exc:
+            logger.error("could not post MR comment: {}", exc)
+
+    severities = [f.severity for f in result.findings]
+    return {
+        "agent": "reviewer",
+        "outcome": "skipped" if result.skipped else ("ok" if result.llm_ok else "fallback"),
+        "failure_reason": result.failure_reason,
+        "findings": len(result.findings),
+        "findings_by_severity": {s: severities.count(s) for s in set(severities)},
+        "findings_by_source": {
+            src: sum(f.source == src for f in result.findings) for src in ("llm", "opa")
+        },
+        "filtered": dict(result.filtered),
+        "reviewed_files": result.reviewed_files,
+        "attempts": result.attempts,
+        "redactions": result.redactions,
+        "posted": posted,
+        "latency_seconds": round(time.monotonic() - started, 3),
+        "llm_latency_seconds": round(result.latency_seconds, 3),
+        "prompt": result.prompt_id,
+        "usage": usage.as_dict(),
+    }
+
+
 # --- main ---------------------------------------------------------------------
 
 
@@ -156,10 +217,15 @@ def build_parser() -> argparse.ArgumentParser:
     inv.add_argument("--stage", default="")
     inv.add_argument("--mr-title", default="")
     inv.add_argument("--dry-run", action="store_true", help="print the comment, do not post")
+
+    rev = sub.add_parser("review", help="review the MR diff")
+    rev.add_argument("--diff-file", help="local unified diff (skips GitLab)")
+    rev.add_argument("--mr-title", default="")
+    rev.add_argument("--dry-run", action="store_true", help="print the comment, do not post")
     return parser
 
 
-COMMANDS = {"investigate": cmd_investigate}
+COMMANDS = {"investigate": cmd_investigate, "review": cmd_review}
 
 
 def main(argv: list[str] | None = None) -> int:

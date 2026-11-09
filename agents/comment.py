@@ -131,3 +131,63 @@ def _render_diagnosis(result, jobs: str) -> list[str]:
     if notes:
         lines += ["", "<sub>Checks: " + "; ".join(notes) + "</sub>"]
     return lines
+
+
+SEVERITY_ICONS = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "⚪"}
+
+
+def should_post_review(result) -> bool:
+    """Low noise: stay silent when the review ran and found nothing worth a human's time."""
+    if result.skipped:
+        return False
+    return bool(result.findings) or not result.llm_ok
+
+
+def render_review(result, ctx, usage: UsageTracker, threshold: str) -> str:
+    head = marker("reviewer", f"sha-{ctx.commit_sha}")
+    lines = [head]
+    if result.llm_ok:
+        count = len(result.findings)
+        title = f"{count} finding(s) at severity ≥ {threshold}" if count else "no findings"
+        lines.append(f"### 🧐 AI review: {title}")
+        if result.summary:
+            lines += ["", result.summary]
+    else:
+        reason = unavailable_reason(result.failure_reason)
+        lines += [
+            "### ⚠️ AI reviewer unavailable",
+            f"The AI review did not run: **{reason}**. "
+            + "Only deterministic OPA/security checks are shown below.",
+        ]
+
+    for i, f in enumerate(result.findings, start=1):
+        source = "OPA policy" if f.source == "opa" else f"AI, confidence {f.confidence:.0%}"
+        icon = SEVERITY_ICONS[f.severity]
+        lines += [
+            "",
+            f"**{i}. {icon} {f.severity.upper()} · `{f.file}`:{f.line} · `{f.rule}`** "
+            + f"<sub>({source})</sub>",
+            "",
+            f.reason,
+            "",
+            "<details><summary>Suggested fix</summary>",
+            "",
+            f.suggested_fix if "```" in f.suggested_fix else code_block(f.suggested_fix),
+            "",
+            "</details>",
+        ]
+    if not result.findings and not result.llm_ok:
+        lines += ["", "_No deterministic findings._"]
+
+    checks = list(result.policy_notes)
+    if result.filtered:
+        dropped = ", ".join(
+            f"{n} {k.replace('_', ' ')}" for k, n in sorted(result.filtered.items())
+        )
+        checks.append(f"filtered: {dropped}")
+    if result.omitted_files:
+        checks.append(f"{len(result.omitted_files)} file(s) not reviewed (size/type)")
+    if checks:
+        lines += ["", "<sub>Checks: " + "; ".join(checks) + "</sub>"]
+    lines += ["", usage_line(usage, result.prompt_id, result.latency_seconds)]
+    return "\n".join(lines) + FOOTER

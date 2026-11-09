@@ -35,6 +35,8 @@ class FileDiff:
     deleted: bool = False
     # new-file line number -> added line text
     added: dict[int, str] = field(default_factory=dict)
+    # every new-side line visible in the diff (added + context)
+    new_lines: dict[int, str] = field(default_factory=dict)
     # rendered lines for the prompt
     rendered: list[str] = field(default_factory=list)
 
@@ -80,11 +82,13 @@ def parse_unified_diff(text: str) -> list[FileDiff]:
             current.rendered.append(raw)
         elif raw.startswith("+"):
             current.added[new_line] = raw[1:]
+            current.new_lines[new_line] = raw[1:]
             current.rendered.append(f"+{new_line:>5} | {raw[1:]}")
             new_line += 1
         elif raw.startswith("-"):
             current.rendered.append(f"-{'':>5} | {raw[1:]}")
         elif raw.startswith(" ") or raw == "":
+            current.new_lines[new_line] = raw[1:]
             current.rendered.append(f" {new_line:>5} | {raw[1:]}")
             new_line += 1
         # "\ No newline at end of file" and other markers are ignored
